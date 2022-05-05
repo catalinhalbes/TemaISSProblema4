@@ -5,7 +5,6 @@ import domain.Worker;
 import exceptions.ProgramException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -22,19 +21,19 @@ public class AdminController {
     @FXML
     private TableColumn<Worker, String> roleColumn;
     @FXML
+    public ComboBox<String> roleSelect;
+    @FXML
     private Label welcomeLabel;
     @FXML
     private TextField userField;
     @FXML
     private TextField nameField;
     @FXML
-    private TextField roleField;
-    @FXML
     private TextField passField;
 
     private final ObservableList<Worker> workers = FXCollections.observableArrayList();
+    private final ObservableList<String> roles = FXCollections.observableArrayList();
     private Worker selectedWorker;
-    private int selectedWorkerIndex;
 
     private Worker logged;
     private Service service;
@@ -67,13 +66,14 @@ public class AdminController {
             row.setOnMouseClicked(ev -> {
                 if (!row.isEmpty() && ev.getButton() == MouseButton.PRIMARY && ev.getClickCount() == 1) {
                     selectedWorker = row.getItem();
-                    selectedWorkerIndex = row.getIndex();
                     loadWorkerData();
                 }
             });
 
             return row;
         });
+
+        roleSelect.setItems(roles);
     }
 
     public void refresh() {
@@ -86,20 +86,31 @@ public class AdminController {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
-        clearWorkerData();
+
+        String selected = roleSelect.getSelectionModel().getSelectedItem();
+        roles.clear();
+        try {
+            roles.add("");
+            roles.addAll(service.getRoles());
+            roleSelect.getSelectionModel().select(selected);
+        } catch (ProgramException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
     }
 
     private void loadWorkerData() {
         userField.setText(selectedWorker.getUsername());
         nameField.setText(selectedWorker.getName());
-        roleField.setText(selectedWorker.getRole());
+        roleSelect.getSelectionModel().select(selectedWorker.getRole());
         passField.setText("");
     }
 
     private void clearWorkerData() {
         userField.setText("");
         nameField.setText("");
-        roleField.setText("");
+        roleSelect.getSelectionModel().select(0);
         passField.setText("");
     }
 
@@ -113,7 +124,7 @@ public class AdminController {
     private void onAddButtonClick() {
         String user = userField.getText();
         String name = nameField.getText();
-        String role = roleField.getText();
+        String role = roleSelect.getSelectionModel().getSelectedItem();
         String pass = passField.getText();
         Worker worker = new Worker(user, name, role, pass);
         try {
@@ -130,7 +141,7 @@ public class AdminController {
     private void onUpdateButtonClick() {
         String user = userField.getText();
         String name = nameField.getText();
-        String role = roleField.getText();
+        String role = roleSelect.getSelectionModel().getSelectedItem();
         String pass = passField.getText();
         Worker worker = new Worker(user, name, role, pass);
         try {

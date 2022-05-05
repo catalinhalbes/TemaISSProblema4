@@ -80,4 +80,8 @@ public class Service {
     public List<Worker> getWorkers() {
         return workerRepo.findAll();
     }
+
+    public List<String> getRoles() {
+        return workerRepo.findRoleNames();
+    }
 }

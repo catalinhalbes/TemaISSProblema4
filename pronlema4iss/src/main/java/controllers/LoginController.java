@@ -73,6 +73,10 @@ public class LoginController {
                 }
             }
 
+            Alert a = new Alert(Alert.AlertType.INFORMATION);
+            a.setContentText("add dropdown to role name");
+            a.showAndWait();
+
             selfStage.hide();
         } catch (ProgramException | IOException ex) {
             Alert a = new Alert(Alert.AlertType.ERROR);

@@ -185,6 +185,23 @@ public class WorkerDBRepository {
         }
     }
 
+    public List<String> findRoleNames() {
+        String sql = "select * from roles;";
+        List<String> rez = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()){
+            while(rs.next()) {
+                String role = rs.getString("role_name");
+                rez.add(role);
+            }
+        } catch (SQLException ex) {
+            throw new RepoException("Error executing findRoleNames: " + ex.getMessage(), ex);
+        }
+
+        return rez;
+    }
+
     /**
      * Executes the prepared statement and returns a list with all the workers contained in the result set
      * @param ps, the prepared statement to be executed, the result set must contain the columns that compose a worker, except the password
