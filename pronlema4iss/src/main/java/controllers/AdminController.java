@@ -1,8 +1,10 @@
 package controllers;
 
 import business.Service;
+import business.observer.Observer;
 import domain.Worker;
 import exceptions.ProgramException;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -11,7 +13,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 
-public class AdminController {
+import java.util.List;
+
+public class AdminController implements Observer {
     @FXML
     private TableView<Worker> workersTable;
     @FXML
@@ -21,7 +25,11 @@ public class AdminController {
     @FXML
     private TableColumn<Worker, String> roleColumn;
     @FXML
-    public ComboBox<String> roleSelect;
+    private TableColumn<Worker, String> managerColumn;
+    @FXML
+    private ComboBox<String> roleSelect;
+    @FXML
+    private ComboBox<String> managerSelect;
     @FXML
     private Label welcomeLabel;
     @FXML
@@ -32,6 +40,7 @@ public class AdminController {
     private TextField passField;
 
     private final ObservableList<Worker> workers = FXCollections.observableArrayList();
+    private final ObservableList<String> managers = FXCollections.observableArrayList();
     private final ObservableList<String> roles = FXCollections.observableArrayList();
     private Worker selectedWorker;
 
@@ -45,6 +54,7 @@ public class AdminController {
 
     public void setService(Service service) {
         this.service = service;
+        service.addObserver(this);
     }
 
     public void setSelfStage(Stage self) {
@@ -60,6 +70,13 @@ public class AdminController {
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("Username"));
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("Name"));
         roleColumn.setCellValueFactory(new PropertyValueFactory<>("Role"));
+        managerColumn.setCellValueFactory(cellData -> {
+            Worker manager = cellData.getValue().getManager();
+            if(manager == null){
+                return new SimpleStringProperty("");
+            }
+            return new SimpleStringProperty(manager.getUsername());
+        });
 
         workersTable.setRowFactory(tv -> {
             TableRow<Worker> row = new TableRow<>();
@@ -74,6 +91,7 @@ public class AdminController {
         });
 
         roleSelect.setItems(roles);
+        managerSelect.setItems(managers);
     }
 
     public void refresh() {
@@ -98,12 +116,29 @@ public class AdminController {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
+
+        managers.clear();
+        try {
+            managers.add("");
+            managerSelect.getSelectionModel().select(0);
+            List<Worker> w = service.getWorkersByRole("manager");
+            w.forEach(worker -> managers.add(worker.getUsername()));
+            roleSelect.getSelectionModel().select(selected);
+        } catch (ProgramException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
     }
 
     private void loadWorkerData() {
         userField.setText(selectedWorker.getUsername());
         nameField.setText(selectedWorker.getName());
         roleSelect.getSelectionModel().select(selectedWorker.getRole());
+        if(selectedWorker.getManager() != null)
+            managerSelect.getSelectionModel().select(selectedWorker.getManager().getUsername());
+        else
+            managerSelect.getSelectionModel().select(0);
         passField.setText("");
     }
 
@@ -111,13 +146,26 @@ public class AdminController {
         userField.setText("");
         nameField.setText("");
         roleSelect.getSelectionModel().select(0);
+        managerSelect.getSelectionModel().select(0);
         passField.setText("");
+    }
+
+    public void logout() {
+        service.removeObserver(this);
+        try {
+            service.logout(logged.getUsername(), logged.getPassword());
+        } catch (ProgramException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
+        selfStage.hide();
+        previousStage.show();
     }
 
     @FXML
     private void onLogoutButtonClick() {
-        selfStage.hide();
-        previousStage.show();
+        logout();
     }
 
     @FXML
@@ -126,7 +174,12 @@ public class AdminController {
         String name = nameField.getText();
         String role = roleSelect.getSelectionModel().getSelectedItem();
         String pass = passField.getText();
-        Worker worker = new Worker(user, name, role, pass);
+        Worker manager = new Worker();
+        if (managerSelect.getSelectionModel().getSelectedIndex() != 0)
+            manager.setUsername(managerSelect.getSelectionModel().getSelectedItem());
+        else
+            manager = null;
+        Worker worker = new Worker(user, name, role, manager, pass);
         try {
             service.addWorker(worker);
         } catch (ProgramException ex) {
@@ -134,7 +187,6 @@ public class AdminController {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
-        refresh();
     }
 
     @FXML
@@ -143,7 +195,12 @@ public class AdminController {
         String name = nameField.getText();
         String role = roleSelect.getSelectionModel().getSelectedItem();
         String pass = passField.getText();
-        Worker worker = new Worker(user, name, role, pass);
+        Worker manager = new Worker();
+        if (managerSelect.getSelectionModel().getSelectedIndex() != 0)
+            manager.setUsername(managerSelect.getSelectionModel().getSelectedItem());
+        else
+            manager = null;
+        Worker worker = new Worker(user, name, role, manager, pass);
         try {
             service.updateWorker(worker);
         } catch (ProgramException ex) {
@@ -151,7 +208,6 @@ public class AdminController {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
-        refresh();
     }
 
     @FXML
@@ -164,7 +220,6 @@ public class AdminController {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
-        refresh();
     }
 
     @FXML
@@ -175,5 +230,15 @@ public class AdminController {
     @FXML
     private void onClearButtonClick() {
         clearWorkerData();
+    }
+
+    @Override
+    public void update() {
+        refresh();
+    }
+
+    @Override
+    public void close() {
+        logout();
     }
 }

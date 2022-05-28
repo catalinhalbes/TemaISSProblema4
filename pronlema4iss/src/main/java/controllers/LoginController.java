@@ -3,6 +3,7 @@ package controllers;
 import business.Service;
 import domain.Worker;
 import exceptions.ProgramException;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -46,7 +47,19 @@ public class LoginController {
         controller.setService(service);
         controller.refresh();
 
+        admin.setOnCloseRequest(event -> {
+            controller.logout();
+        });
+
         admin.show();
+    }
+
+    private void startManagerView(Worker worker) {
+
+    }
+
+    private void startEmployeeView(Worker worker) {
+
     }
 
     @FXML
@@ -63,17 +76,18 @@ public class LoginController {
                 return;
             }
 
+            worker.setPassword(password);
+
             switch (worker.getRole()) {
                 case "admin" -> startAdminView(worker);
+                case "employee" -> startEmployeeView(worker);
+                case "Manager" -> startManagerView(worker);
                 default -> {
                     Alert a = new Alert(Alert.AlertType.INFORMATION);
                     a.setContentText("Functionality for role '" + worker.getRole() + "' is not added");
                     a.showAndWait();
-                    return;
                 }
             }
-
-            selfStage.hide();
         } catch (ProgramException | IOException ex) {
             Alert a = new Alert(Alert.AlertType.ERROR);
             a.setContentText(ex.getMessage());
