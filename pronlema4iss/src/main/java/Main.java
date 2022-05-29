@@ -12,6 +12,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import repository.ProblemRepository;
+import repository.TaskRepository;
 import repository.WorkerRepository;
 
 import java.io.IOException;
@@ -40,7 +42,9 @@ public class Main extends Application {
         initializeSessionFactory();
 
         WorkerRepository workerRepo = new WorkerRepository(sessionFactory);
-        Service service = new Service(workerRepo);
+        TaskRepository taskRepo = new TaskRepository(sessionFactory);
+        ProblemRepository problemRepo = new ProblemRepository(sessionFactory);
+        Service service = new Service(workerRepo, taskRepo, problemRepo);
 
         Stage login = getLoginStage(service);
         login.show();

@@ -54,12 +54,50 @@ public class LoginController {
         admin.show();
     }
 
-    private void startManagerView(Worker worker) {
+    private void startManagerView(Worker worker) throws IOException {
+        Stage manager = new Stage();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/views/managerView.fxml"));
 
+        Parent parent = loader.load();
+        manager.setScene(new Scene(parent));
+        manager.setTitle("Manager: " + worker.getUsername());
+
+        ManagerController controller = loader.getController();
+        controller.setLogged(worker);
+        controller.setSelfStage(manager);
+        controller.setPreviousStage(selfStage);
+        controller.setService(service);
+        controller.refresh();
+
+        manager.setOnCloseRequest(event -> {
+            controller.logout();
+        });
+
+        manager.show();
     }
 
-    private void startEmployeeView(Worker worker) {
+    private void startEmployeeView(Worker worker) throws IOException {
+        Stage employee = new Stage();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/views/employeeView.fxml"));
 
+        Parent parent = loader.load();
+        employee.setScene(new Scene(parent));
+        employee.setTitle("Employee: " + worker.getUsername());
+
+        EmployeeController controller = loader.getController();
+        controller.setLogged(worker);
+        controller.setSelfStage(employee);
+        controller.setPreviousStage(selfStage);
+        controller.setService(service);
+        controller.refresh();
+
+        employee.setOnCloseRequest(event -> {
+            controller.logout();
+        });
+
+        employee.show();
     }
 
     @FXML
@@ -81,7 +119,7 @@ public class LoginController {
             switch (worker.getRole()) {
                 case "admin" -> startAdminView(worker);
                 case "employee" -> startEmployeeView(worker);
-                case "Manager" -> startManagerView(worker);
+                case "manager" -> startManagerView(worker);
                 default -> {
                     Alert a = new Alert(Alert.AlertType.INFORMATION);
                     a.setContentText("Functionality for role '" + worker.getRole() + "' is not added");

@@ -1,7 +1,6 @@
 package repository;
 
 import domain.Task;
-import exceptions.ProgramException;
 import exceptions.RepoException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -107,8 +106,8 @@ public class TaskRepository {
         Transaction tx = null;
         try (Session session = sf.openSession()){
             tx = session.beginTransaction();
-            rez = session.createQuery("from Task as t where t.worker = :w and t.finished = false", Task.class).
-                    setParameter(":w", username).
+            rez = session.createQuery("from Task as t where t.worker.username = :nam and t.finished = false", Task.class).
+                    setParameter("nam", username).
                     list();
             tx.commit();
         } catch (Exception ex) {
@@ -130,8 +129,8 @@ public class TaskRepository {
         Transaction tx = null;
         try (Session session = sf.openSession()){
             tx = session.beginTransaction();
-            rez = session.createQuery("from Task as t where t.manager = :m", Task.class).
-                    setParameter(":m", username).
+            rez = session.createQuery("from Task as t where t.worker.username = :nam", Task.class).
+                    setParameter("nam", username).
                     list();
             tx.commit();
         } catch (Exception ex) {

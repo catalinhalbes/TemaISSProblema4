@@ -19,5 +19,7 @@
 
         <mapping class="domain.Worker"/>
         <mapping class="domain.Role"/>
+        <mapping class="domain.Task"/>
+        <mapping class="domain.Problem"/>
     </session-factory>
 </hibernate-configuration>

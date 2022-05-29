@@ -193,7 +193,7 @@ public class WorkerRepository {
     public Worker findByCredentials(String username, String password) {
         Worker rez = null;
         Transaction tx = null;
-        boolean ok = false;
+        boolean logged = true;
         try (Session session = sf.openSession()){
             tx = session.beginTransaction();
             List<Worker> workers = session.createQuery("from Worker as w where w.username = :usr and w.password = :pas", Worker.class).
@@ -205,7 +205,7 @@ public class WorkerRepository {
                     workers.get(0).setLastLogin(LocalDateTime.now());
                     workers.get(0).setLogged(true);
                     rez = workers.get(0);
-                    ok = true;
+                    logged = false;
                 }
             }
             tx.commit();
@@ -220,7 +220,7 @@ public class WorkerRepository {
             }
             throw new RepoException("Error executing findByCredentials: " + ex.getMessage(), ex);
         }
-        if(!ok) throw new RepoException("User already logged");
+        if(logged) throw new RepoException("Invalid Credentials or User already logged");
         return hidePass(rez);
     }
 

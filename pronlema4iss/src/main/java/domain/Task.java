@@ -35,6 +35,7 @@ public class Task {
     private Worker manager;
 
     public Task() {
+        this.finished = Boolean.FALSE;
     }
 
     public Task(Long id, String name, String description, LocalDateTime deadline) {
@@ -42,6 +43,7 @@ public class Task {
         this.name = name;
         this.description = description;
         this.deadline = deadline;
+        this.finished = Boolean.FALSE;
     }
 
     public Task(Long id, String name, String description, LocalDateTime deadline, Worker worker, Worker manager) {
@@ -51,12 +53,14 @@ public class Task {
         this.deadline = deadline;
         this.worker = worker;
         this.manager = manager;
+        this.finished = Boolean.FALSE;
     }
 
     public Task(String name, String description, LocalDateTime deadline) {
         this.name = name;
         this.description = description;
         this.deadline = deadline;
+        this.finished = Boolean.FALSE;
     }
 
     public Long getId() {
