@@ -102,7 +102,7 @@ public class ManagerController implements Observer {
         });
 
         problemsTable.setItems(taskProblems);
-        problemDateColumn.setCellValueFactory(new PropertyValueFactory<>("Date"));
+        problemDateColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDate().format(DateTimeFormatter.ofPattern("yy/MM/dd hh:mm"))));
         problemDescriptionColumn.setCellValueFactory(new PropertyValueFactory<>("Description"));
 
         problemsTable.setRowFactory(tv -> {
@@ -154,7 +154,7 @@ public class ManagerController implements Observer {
         if(selectedProblem != null) {
             taskNameField.setText("");
             descriptionField.setText(selectedProblem.getDescription());
-            taskDeadlineColumn.setText("");
+            dateField.setChronology(selectedProblem.getDate().getChronology());
             try {
                 taskProblems.clear();
                 taskProblems.addAll(service.getTaskProblems(selectedTask));
